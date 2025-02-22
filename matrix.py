@@ -10,6 +10,30 @@ class Matrix:
             matrix = [[0 for _ in range(m)] for _ in range(n)]
         self.matrix = matrix
 
+    def add(self, matrix):
+        if len(self.matrix) != len(matrix.matrix) or len(self.matrix[0]) != len(
+            matrix.matrix[0]
+        ):
+            raise ValueError('Incompatible matrices!')
+        res = Matrix(len(self.matrix), len(self.matrix[0]))
+        res.matrix = [
+            [self.matrix[i][j] + matrix.matrix[i][j] for j in range(len(self.matrix[0]))]
+            for i in range(len(self.matrix))
+        ]
+        return res
+
+    def subtract(self, matrix):
+        if len(self.matrix) != len(matrix.matrix) or len(self.matrix[0]) != len(
+            matrix.matrix[0]
+        ):
+            raise ValueError("Incompatible matrices!")
+        res = Matrix(len(self.matrix), len(self.matrix[0]))
+        res.matrix = [
+            [self.matrix[i][j] - matrix.matrix[i][j] for j in range(len(self.matrix[0]))]
+            for i in range(len(self.matrix))
+        ]
+        return res
+
     def multiply(self, matrix):
         matrix = matrix.matrix
         if len(self.matrix[0]) != len(matrix):
@@ -65,10 +89,11 @@ class Matrix:
     def minor(self, matrix):
         r = len(matrix)
         c = len(matrix[0])
-        if r == 2 and c == 2:
-            return matrix
         m = Matrix(r, c)
-        m.matrix = [[self.recursiveDet(self.sub_mat(matrix, i, j)) for j in range(c)] for i in range(r)]
+        if r == 2 and c == 2:
+            m.matrix = [[matrix[1][1], matrix[0][1]], [matrix[1][0], matrix[0][0]]]
+        else:
+            m.matrix = [[self.recursiveDet(self.sub_mat(matrix, i, j)) for j in range(c)] for i in range(r)]
         return m
 
     def cofactor(self, matrix):
