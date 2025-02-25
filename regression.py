@@ -16,12 +16,14 @@ class LinearRegression:
             if type(x_train[i]) is int:
                 x_train[i] = [1, x_train[i]]
             else:
-                x_train[i] = row.insert(0, 1)
+                row.insert(0, 1)
             data.extend(x_train[i])
 
         x = Matrix(len(x_train), len(x_train[0]), data)
         x_t = x.transpose()
         # Change this to the summation fn. matrix for XtX * XtY => summation of xi ** i matrix * summation of yi ** i matrix
+        # IMPORTANT: If there is a linear relationship between xi then this method is not possible.
+        # i.e. Rank(X) >= m (if n x m matrix)
         xtx = x_t.multiply(x)
         xtx_inv = xtx.inverse()
         xty = x_t.multiply(y)
@@ -29,6 +31,18 @@ class LinearRegression:
         self.x = x
 
     def predict(self, x, theta = None):
+        data = []
+        for i in range(len(x)):
+            row = x[i]
+            if type(x[i]) is int:
+                x[i] = [1, x[i]]
+            else:
+                row.insert(0, 1)
+            data.extend(x[i])
+
+        x = Matrix(len(x), len(x[0]), data)
+
         if theta is None:
             theta = self.theta
-        return x.multiply(theta)
+        preds = x.multiply(theta)
+        return [ele for row in preds.matrix for ele in row]
