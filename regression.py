@@ -1,4 +1,6 @@
 from matrix import Matrix
+from metrics import Metrics
+import random
 
 # Multivariate Linear Regression, can be expanded to polynomial.
 class LinearRegression:
@@ -46,3 +48,39 @@ class LinearRegression:
             theta = self.theta
         preds = x.multiply(theta)
         return [ele for row in preds.matrix for ele in row]
+
+    # Gradient descent based on loss fn: MSE
+    # Gradient descent should be based on known y values.
+    # How do you achieve convergence??
+    def gradient_descent(self, y):
+        x_t = self.x.transpose()
+        theta = self.theta
+        y_preds_new = self.predict(self.x)
+        y_preds_old = Matrix(len(y_preds_new.matrix), 1, y)
+        i = 0
+        # Convergence is reached when prediction values do not change
+        while i < 20 and not y_preds_new.equal(y_preds_old):
+            y_dif = y_preds_new.subtract(y_preds_old)
+            xtydif = x_t.multiply(y_dif)
+            learn_rate = xtydif.scalarMultiply((2) / len(self.theta.matrix))
+            theta = theta.subtract(learn_rate)
+            print(theta.matrix)
+            y_preds_old = y_preds_new
+            y_preds_new = self.predict(self.x, theta)
+            i += 1
+
+        self.theta = theta
+
+
+if __name__ == "__main__":
+    # Let the function be y = 12x + 7z - 11
+    x_train = [[random.randint(-100, 100), random.randint(50, 300)] for _ in range(10)]
+    y_train = [12 * x_train[i][0] + 7 * x_train[i][1] - 11 for i in range(10)]
+    model = LinearRegression()
+    model.fit(x_train, y_train)
+    x_test = [[random.randint(-10, 10), random.randint(5, 30)] for _ in range(10)]
+    y_test = [12 * x_test[i][0] + 7 * x_test[i][1] - 11 for i in range(10)]
+    y_preds = model.predict(x_test)
+    mets = Metrics()
+    mse = mets.mean_squared_error(y_test, y_preds)
+    print(round(mse, 4))
