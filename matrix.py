@@ -111,3 +111,17 @@ class Matrix:
         if self.determinant() == 0:
             raise ValueError("Inverse does not exist!")
         return self.adjunct(self.matrix).scalarMultiply(1/self.determinant())
+    
+    def equal(self, matrix):
+        a = self.matrix
+        b = matrix.matrix
+
+        if len(a) != len(b) or len(a[0]) != len(b[0]):
+            return False
+        
+        for i in range(len(a)):
+            for j in range(len(a[0])):
+                if a[i][j] != b[i][j]:
+                    return False
+                
+        return True
