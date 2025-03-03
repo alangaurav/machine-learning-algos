@@ -2,7 +2,6 @@ from matrix import Matrix
 from metrics import Metrics
 import random
 
-
 # Multivariate Linear Regression, can be expanded to polynomial.
 class LinearRegression:
 
@@ -52,21 +51,23 @@ class LinearRegression:
     # Gradient descent should be based on known y values.
     # TODO: Fix convergence condition
     def gradient_descent(self, x, y):
-        x_t = self.x.transpose()
+        x_t = x.transpose()
         theta = Matrix(
-            len(y), len(y[0]), [random.randint(-10, 10) for _ in range(len(y))]
+            len(x.matrix[0]),
+            1,
+            [random.randint(-10, 10) for _ in range(len(x.matrix[0]))],
         )
-        y_preds_new = self.predict(x)
-        y_preds_old = y
+        theta_old = Matrix(len(x.matrix[0]), 1)
         i = 0
         # Convergence is reached when prediction values do not change
-        while i < 20 and not y_preds_new.equal(y_preds_old):
-            y_dif = y_preds_new.subtract(y_preds_old)
+        while i < 57 and not theta_old.equal(theta):
+            y_preds = self.gen_y_matrix(self.predict(x, theta))
+            y_dif = y_preds.subtract(y)
             xtydif = x_t.multiply(y_dif)
-            delta = xtydif.scalarMultiply((2) / len(self.theta.matrix))
-            theta = theta.subtract(delta)
-            y_preds_old = y_preds_new
-            y_preds_new = self.predict(self.x, theta)
+            delta = xtydif.scalarMultiply((2) / len(theta.matrix))
+            theta_temp = theta.subtract(delta)
+            theta_old = theta
+            theta = theta_temp
             i += 1
         self.theta = theta
 
@@ -82,4 +83,5 @@ if __name__ == "__main__":
     y_preds = model.predict(x_test)
     mets = Metrics()
     mse = mets.mean_squared_error(y_test, y_preds)
+    print(model.theta.matrix)
     print(round(mse, 4))
