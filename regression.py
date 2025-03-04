@@ -24,7 +24,6 @@ class LinearRegression:
 
     def normal_form(self, x, y):
         x_t = x.transpose()
-        # TODO: Change this to the summation fn. matrix for XtX * XtY => summation of xi ** i matrix * summation of yi ** i matrix
         # IMPORTANT: If there is a linear relationship between xi then this method is not possible.
         # i.e. Rank(X) >= m (if n x m matrix)
         xtx = x_t.multiply(x)
@@ -37,7 +36,7 @@ class LinearRegression:
             raise TypeError("Invalid dimensions of X and Y data.")
         x = self.gen_x_matrix(x_train)
         y = self.gen_y_matrix(y_train)
-        self.normal_form(x, y)
+        self.gradient_descent(x, y)
 
     def predict(self, x, theta=None):
         if type(x) is list:
@@ -47,28 +46,43 @@ class LinearRegression:
         preds = x.multiply(theta)
         return [ele for row in preds.matrix for ele in row]
 
+    def convergence_condition(self, x, y, theta):
+        prec = 0.01
+        mets = Metrics()
+        mse = mets.mean_squared_error(
+            [ele for row in y.matrix for ele in row], self.predict(x, theta)
+        )
+        if abs(mse) < prec:
+            return False
+        return True
+
     # Gradient descent based on loss fn: MSE
-    # Gradient descent should be based on known y values.
-    # TODO: Fix convergence condition
+    # TODO: Fix constant value rescaling.
     def gradient_descent(self, x, y):
         x_t = x.transpose()
         theta = Matrix(
             len(x.matrix[0]),
             1,
-            [random.randint(-10, 10) for _ in range(len(x.matrix[0]))],
+            [0] * len(x.matrix[0]),
         )
-        theta_old = Matrix(len(x.matrix[0]), 1)
-        i = 0
+        neta = 0.00001
+        epochs = 1000
+        counter = 0
         # Convergence is reached when prediction values do not change
-        while i < 57 and not theta_old.equal(theta):
-            y_preds = self.gen_y_matrix(self.predict(x, theta))
+        for _ in range(epochs):
+            counter += 1
+            y_preds = self.predict(x, theta)
+            y_preds = self.gen_y_matrix(y_preds)
             y_dif = y_preds.subtract(y)
-            xtydif = x_t.multiply(y_dif)
-            delta = xtydif.scalarMultiply((2) / len(theta.matrix))
-            theta_temp = theta.subtract(delta)
-            theta_old = theta
-            theta = theta_temp
-            i += 1
+            # This is the MSE delta.
+            gradient = x_t.multiply(y_dif)
+            # scale_factor = (2 / len(y.matrix)) * neta
+            scale_factor = (2 * neta) / len(y.matrix)
+            delta = gradient.scalarMultiply(scale_factor)
+            theta = theta.subtract(delta)
+            if not self.convergence_condition(x, y_preds, theta):
+                break
+
         self.theta = theta
 
 
@@ -83,5 +97,5 @@ if __name__ == "__main__":
     y_preds = model.predict(x_test)
     mets = Metrics()
     mse = mets.mean_squared_error(y_test, y_preds)
+    print(mse)
     print(model.theta.matrix)
-    print(round(mse, 4))
