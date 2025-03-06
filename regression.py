@@ -10,14 +10,15 @@ class LinearRegression:
 
     def gen_x_matrix(self, x):
         data = []
-        for i in range(len(x)):
-            row = x[i]
-            if type(x[i]) is int:
-                x[i] = [1, x[i]]
+        for row in x:
+            if type(row) is int:
+                data.append(1)
+                data.append(row)
             else:
-                row.insert(0, 1)
-            data.extend(x[i])
-        return Matrix(len(x), len(x[0]), data)
+                data.append(1)
+                for ele in row:
+                    data.append(ele)
+        return Matrix(len(x), len(x[0]) + 1, data)
 
     def gen_y_matrix(self, y):
         return Matrix(len(y), 1, y)
@@ -47,7 +48,7 @@ class LinearRegression:
         return [ele for row in preds.matrix for ele in row]
 
     def convergence_condition(self, x, y, theta):
-        prec = 0.01
+        prec = 0.001
         mets = Metrics()
         mse = mets.mean_squared_error(
             [ele for row in y.matrix for ele in row], self.predict(x, theta)
@@ -57,14 +58,16 @@ class LinearRegression:
         return True
 
     # Gradient descent based on loss fn: MSE
-    # TODO: Fix constant value rescaling.
+    # This does not affect bias only weights
+    # Bias needs to be checked separately
     def gradient_descent(self, x, y):
-        x_t = x.transpose()
         theta = Matrix(
             len(x.matrix[0]),
             1,
-            [0] * len(x.matrix[0]),
+            [random.random()] * len(x.matrix[0]),
         )
+        intercept = theta.matrix[0][0]
+        x_t = x.transpose()
         neta = 0.00001
         epochs = 1000
         counter = 0
@@ -76,26 +79,15 @@ class LinearRegression:
             y_dif = y_preds.subtract(y)
             # This is the MSE delta.
             gradient = x_t.multiply(y_dif)
-            # scale_factor = (2 / len(y.matrix)) * neta
             scale_factor = (2 * neta) / len(y.matrix)
             delta = gradient.scalarMultiply(scale_factor)
             theta = theta.subtract(delta)
-            if not self.convergence_condition(x, y_preds, theta):
+            intercept_update = (2 / len(y.matrix)) * sum(
+                [y_dif.matrix[i][0] for i in range(len(y.matrix))]
+            )
+            intercept -= intercept_update * 0.01
+            theta.matrix[0][0] = intercept
+            if not self.convergence_condition(x, y, theta):
                 break
 
         self.theta = theta
-
-
-if __name__ == "__main__":
-    # Let the function be y = 12x + 7z - 11
-    x_train = [[random.randint(-100, 100), random.randint(50, 300)] for _ in range(10)]
-    y_train = [12 * x_train[i][0] + 7 * x_train[i][1] - 11 for i in range(10)]
-    model = LinearRegression()
-    model.fit(x_train, y_train)
-    x_test = [[random.randint(-10, 10), random.randint(5, 30)] for _ in range(10)]
-    y_test = [12 * x_test[i][0] + 7 * x_test[i][1] - 11 for i in range(10)]
-    y_preds = model.predict(x_test)
-    mets = Metrics()
-    mse = mets.mean_squared_error(y_test, y_preds)
-    print(mse)
-    print(model.theta.matrix)
