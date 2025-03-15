@@ -3,37 +3,17 @@ from metrics import Metrics
 import random
 
 
-# Multivariate Linear Regression, can be expanded to polynomial.
-class LinearRegression:
+class Regression:
     """
-    A class to perform Linear Regression using multiple variables.
+    A class to perform Regression using multiple variables.
     """
 
-    def __init__(self):
+    def __init__(self, learning_rate):
         """
-        Initializes the LinearRegression model.
+        Initializes the Regression model.
         """
+        self.learning_rate = learning_rate
         self.theta = None
-
-    def gen_design_matrix(self, x):
-        """
-        Generates the design matrix for the input features.
-
-        Parameters:
-        x (list): Input features, either a n-dimensional matrix or a flat list.
-
-        Returns:
-        Matrix: The design matrix with an added intercept term.
-        """
-        data = []
-        for row in x:
-            # Add intercept term
-            data.append(1)
-            if type(row) is int:
-                data.append(row)
-            else:
-                data.extend(row)
-        return Matrix(len(x), len(x[0]) + 1, data)
 
     def gen_y_matrix(self, y):
         """
@@ -102,10 +82,10 @@ class LinearRegression:
         # Transpose of the design matrix
         x_t = x.transpose()
         # Learning rate
-        gradient_neta = 0.00001
+        gradient_neta = self.learning_rate
         intercept_neta = 0.01
         # Number of iterations
-        epochs = 1000
+        epochs = 10000
         counter = 0
 
         # Iterate until convergence or epoch limit
@@ -165,3 +145,70 @@ class LinearRegression:
             theta = self.theta
         preds = x.multiply(theta)
         return [ele for row in preds.matrix for ele in row]
+
+
+# Multivariate Linear Regression, can be expanded to polynomial.
+class LinearRegression(Regression):
+    """
+    A class to perform Linear Regression using multiple variables.
+    """
+
+    def __init__(self):
+        """
+        Initializes the Linear Regression model.
+        """
+        super(self, learning_rate=0.00001).__init__()
+
+    def gen_design_matrix(self, x):
+        """
+        Generates the design matrix for the input features.
+
+        Parameters:
+        x (list): Input features, either a n-dimensional matrix or a flat list.
+
+        Returns:
+        Matrix: The design matrix with an added intercept term.
+        """
+        data = []
+        for row in x:
+            # Add intercept term
+            data.append(1)
+            if type(row) is int:
+                data.append(row)
+            else:
+                data.extend(row)
+        return Matrix(len(x), len(x[0]) + 1, data)
+
+
+class PolynomialRegression(Regression):
+    """
+    A class to perform Linear Regression using multiple variables.
+    """
+
+    def __init__(self, degree=2):
+        super(self, learning_rate=0.000001).__init__()
+        self.degree = degree
+
+    def gen_design_matrix(self, x):
+        """
+        Generates the design matrix for the input features.
+
+        Parameters:
+        x (list): Input features, either a n-dimensional matrix or a flat list.
+
+        Returns:
+        Matrix: The design matrix with an added intercept term.
+        """
+        data = []
+        for row in x:
+            # Add intercept term
+            data.append(1)
+            if type(row) is int:
+                data.append(row)
+            else:
+                data.extend(row)
+        design_mat = Matrix(len(x), len(x[0]) + 1, data)
+        for i in range(len(design_mat.matrix)):
+            for j in range(2, self.degree + 1):
+                design_mat.matrix[i][j] **= j
+        return design_mat
