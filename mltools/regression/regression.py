@@ -1,7 +1,6 @@
-from matrix import Matrix
-from metrics import Metrics
+from mltools.matrix.matrix import Matrix
+from mltools.metrics.metrics import Metrics
 import random
-
 
 class Regression:
     """
@@ -85,12 +84,10 @@ class Regression:
         gradient_neta = self.learning_rate
         intercept_neta = 0.01
         # Number of iterations
-        epochs = 10000
-        counter = 0
+        epochs = 100000
 
         # Iterate until convergence or epoch limit
         for _ in range(epochs):
-            counter += 1
             y_preds = self.predict(x, theta)
             y_preds = self.gen_y_matrix(y_preds)
             y_dif = y_preds.subtract(y)
@@ -139,6 +136,8 @@ class Regression:
         Returns:
         list: Predicted values.
         """
+        if self.theta is None and theta is None:
+            raise ValueError('Fit must be called!')
         if type(x) is list:
             x = self.gen_design_matrix(x)
         if theta is None:
@@ -157,7 +156,7 @@ class LinearRegression(Regression):
         """
         Initializes the Linear Regression model.
         """
-        super(self, learning_rate=0.00001).__init__()
+        super().__init__(learning_rate=0.00001)
 
     def gen_design_matrix(self, x):
         """
@@ -177,7 +176,12 @@ class LinearRegression(Regression):
                 data.append(row)
             else:
                 data.extend(row)
-        return Matrix(len(x), len(x[0]) + 1, data)
+        if type(x[0]) is int:
+            design_mat = Matrix(len(x), 2, data)
+        else:
+            design_mat = Matrix(len(x), len(x[0]) + 1, data)
+
+        return design_mat
 
 
 class PolynomialRegression(Regression):
@@ -186,7 +190,7 @@ class PolynomialRegression(Regression):
     """
 
     def __init__(self, degree=2):
-        super(self, learning_rate=0.000001).__init__()
+        super().__init__(learning_rate=0.000001)
         self.degree = degree
 
     def gen_design_matrix(self, x):
@@ -194,21 +198,26 @@ class PolynomialRegression(Regression):
         Generates the design matrix for the input features.
 
         Parameters:
-        x (list): Input features, either a n-dimensional matrix or a flat list.
+        x (list): Input features, a flat list.
 
         Returns:
         Matrix: The design matrix with an added intercept term.
         """
-        data = []
-        for row in x:
-            # Add intercept term
-            data.append(1)
-            if type(row) is int:
-                data.append(row)
-            else:
-                data.extend(row)
-        design_mat = Matrix(len(x), len(x[0]) + 1, data)
+        if type(x[0]) is int:
+            feat = 1
+        else:
+            feat = len(x[0])    
+        design_mat = Matrix(len(x), self.degree * feat + 1)
         for i in range(len(design_mat.matrix)):
-            for j in range(2, self.degree + 1):
-                design_mat.matrix[i][j] **= j
+            design_mat.matrix[i][0] = 1
+
+        for i in range(len(design_mat.matrix)):
+            if feat == 1:
+                for k in range(1, self.degree + 1):
+                    design_mat.matrix[i][k*feat] = x[i] ** k
+            else:
+                for k in range(1, self.degree + 1):
+                    for j in range(feat):
+                        design_mat.matrix[i][k*feat + j] = x[i][j] ** k
         return design_mat
+        

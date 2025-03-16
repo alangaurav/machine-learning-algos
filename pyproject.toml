@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mltools"
+authors = [
+    {name = "Alan Gaurav", email = "alangaurav@gmail.com"},
+]
+description = "A small machine learning toolkit utility package."
+requires-python = ">=3.8"
+keywords = ["machinelearning", "regression", "matrix", "metrics"]
+license = {text = "GNU V3"}
+classifiers = [
+    "Programming Language :: Python :: 3"
+]
+version = "0.0.1"
+dependencies = [
+]

@@ -1,4 +1,4 @@
-from matrix import Matrix
+from mltools.matrix import Matrix
 import unittest
 
 
