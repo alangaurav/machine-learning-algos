@@ -1,19 +1,7 @@
 from mltools.decision_tree.tree import Node, BinaryTree, NAryTree
 from mltools.decision_tree.impurity import calculate_entropy, calculate_information_gain
 
-class ID3:
-    def __init__(self):
-        self.tree = None
-        self.target = None
-        self.feature_data = None
-
-    def set_feature_data(self, features):
-        self.feature_data = features
-
-    def set_target_data(self, target):
-        self.target = target
-
-    def split_data(self, target, feature_data, feature, value):
+def split_data(target, feature_data, feature, value):
         feature_data_copy = feature_data.copy()
         feature_values = feature_data_copy.pop(feature)
         target_subset = list()
@@ -26,7 +14,18 @@ class ID3:
                     feature_subset[k].append(feature_data[k][i])
                 
         return feature_subset, target_subset
-        
+
+class ID3:
+    def __init__(self):
+        self.tree = None
+        self.target = None
+        self.feature_data = None
+
+    def set_feature_data(self, features):
+        self.feature_data = features
+
+    def set_target_data(self, target):
+        self.target = target    
 
     def build_tree(self):
         # Identify root node
@@ -42,7 +41,7 @@ class ID3:
         self.tree = NAryTree(root_feature, max_ig, None, "root", self.feature_data, self.target)
         feature_groups = set(self.feature_data.get(root_feature)) # type: ignore
         for group in feature_groups:
-            child_feature_data, child_target = self.split_data(self.target, self.feature_data, root_feature, group)
+            child_feature_data, child_target = split_data(self.target, self.feature_data, root_feature, group)
             node = self.recursive_build(group, child_feature_data, child_target, group)
             if node is not None:
                 self.tree.insert_child(node)
@@ -70,7 +69,7 @@ class ID3:
         root = NAryTree(root_feature, max_ig, group, "internal", feature_data, target)
         feature_groups = set(feature_data.get(root_feature))
         for group in feature_groups:
-            child_feature_data, child_target = self.split_data(target, feature_data, root_feature, group)
+            child_feature_data, child_target = split_data(target, feature_data, root_feature, group)
             node = self.recursive_build(group, child_feature_data, child_target, group)
             if node is not None:
                 self.tree.insert_child(node) # type: ignore
