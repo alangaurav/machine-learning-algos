@@ -72,9 +72,31 @@ class ID3:
             child_feature_data, child_target = split_data(target, feature_data, root_feature, group)
             node = self.recursive_build(group, child_feature_data, child_target, group)
             if node is not None:
-                self.tree.insert_child(node) # type: ignore
+                root.insert_child(node) # type: ignore
 
         return root
+    
+    @classmethod
+    def predict_helper(cls, node, feature, i):
+        if node.root.decision is not None:
+            return node.root.decision
+
+        val = feature.get(node.root.feature)[i]
+        
+        for child in node.children:
+            if val == child.root.criterion:
+                return cls.predict_helper(child, feature, i)
+    
+    def predict(self, feature):
+        if self.tree is None:
+            return "Please train the classifier!"
+        
+        preds = list()
+        for i in range(len(list(feature.values())[0])):
+            preds.append(self.predict_helper(self.tree, feature, i))
+
+        return preds
+    
 
 class CART:
     def __init__(self):
@@ -118,21 +140,42 @@ class CART:
         if len(feature_data) == 0:
             return None
         
-        root_entropy = calculate_gini(target)
+        root_gini = calculate_gini(target)
         root_feature = None
-        max_ig = 0
+        max_gg = 0
         for feature, data in feature_data.items():
-            ig = calculate_gini_gain(target, data, root_entropy)
-            if ig > max_ig:
-                max_ig = ig
+            gg = calculate_gini_gain(target, data, root_gini)
+            if gg > max_gg:
+                max_gg = gg
                 root_feature = feature
         
-        root = NAryTree(root_feature, max_ig, group, "internal", feature_data, target)
+        root = NAryTree(root_feature, max_gg, group, "internal", feature_data, target)
         feature_groups = set(feature_data.get(root_feature))
         for group in feature_groups:
             child_feature_data, child_target = split_data(target, feature_data, root_feature, group)
             node = self.recursive_build(group, child_feature_data, child_target, group)
             if node is not None:
-                self.tree.insert_child(node) # type: ignore
+                root.insert_child(node) # type: ignore
 
         return root
+    
+    @classmethod
+    def predict_helper(cls, node, feature, i):
+        if node.root.decision is not None:
+            return node.root.decision
+
+        val = feature.get(node.root.feature)[i]
+        
+        for child in node.children:
+            if val == child.root.criterion:
+                return cls.predict_helper(child, feature, i)
+    
+    def predict(self, feature):
+        if self.tree is None:
+            return "Please train the classifier!"
+        
+        preds = list()
+        for i in range(len(list(feature.values())[0])):
+            preds.append(self.predict_helper(self.tree, feature, i))
+
+        return preds
