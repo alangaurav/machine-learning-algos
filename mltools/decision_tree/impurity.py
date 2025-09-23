@@ -55,11 +55,11 @@ def calculate_gini_gain(target, feature, root_gini):
 
     gini = 0
     for group in feature_groups:
-        feature_subset = list()
+        target_subset = list()
         for i in range(len(target)): 
             if feature[i] == group:
-                feature_subset.append(feature[i])
-        gini += probabilities.get(group, 0) * calculate_gini(feature_subset)
+                target_subset.append(target[i])
+        gini += probabilities.get(group, 0) * calculate_gini(target_subset)
 
     gini_gain = root_gini - gini
 
